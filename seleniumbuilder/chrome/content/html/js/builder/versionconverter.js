@@ -48,6 +48,18 @@ builder.versionconverter.addHook(builder.selenium1.stepTypes.select, builder.sel
 builder.versionconverter.addHook(builder.selenium1.stepTypes.removeSelection, builder.selenium1, builder.selenium2, builder.versionconverter.convertSelectStep1To2);
 builder.versionconverter.addHook(builder.selenium1.stepTypes.addSelection, builder.selenium1, builder.selenium2, builder.versionconverter.convertSelectStep1To2);
 
+// store and storeExpression are easy enough to convert so long as there's no javascript embedded
+builder.versionconverter.convertStoreStep1To2 = function(step, sourceVersion, targetVersion) {
+  if (step.expression.match(/javascript\{/)) {
+    // Sorry, can't help with this one. Embedded javascript is not SE2 compatible.
+    return null;
+  } else {
+    return builder.versionconverter.defaultConvertStep(step, sourceVersion, targetVersion);
+  }
+};
+
+builder.versionconverter.addHook(builder.selenium1.stepTypes.storeExpression, builder.selenium1, builder.selenium2, builder.versionconverter.convertStoreStep1To2);
+
 builder.versionconverter.convertStep = function(step, sourceVersion, targetVersion) {
   var key = step.type.getName() + "-" + sourceVersion + "-" + targetVersion;
   if (builder.versionconverter.conversionHooks[key]) {
@@ -227,6 +239,7 @@ builder.versionconverter.sel1ToSel2Steps = {
   "waitForPromptPresent": "waitForAlertPresent",
   "storeAlertPresent":    "storeAlertPresent",
   "storePromptPresent":   "storeAlertPresent",
+  "storeExpression":      "store",
   "answerOnNextPrompt":   "answerAlert",
   "chooseCancelOnNextConfirmation": "dismissAlert"
 };
